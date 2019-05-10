@@ -8,6 +8,7 @@ DEFAULT_TRUSTSTORE_FILENAME="kafka.truststore.jks"
 TRUSTSTORE_WORKING_DIRECTORY="truststore"
 KEYSTORE_WORKING_DIRECTORY="keystore"
 CA_CERT_FILE="ca-cert"
+CA_KEY_FILE="ca-key"
 KEYSTORE_SIGN_REQUEST="cert-file"
 KEYSTORE_SIGN_REQUEST_SRL="ca-cert.srl"
 KEYSTORE_SIGNED_CERT="cert-signed"
@@ -46,10 +47,11 @@ if [ -e "$KEYSTORE_SIGNED_CERT" ]; then
 fi
 
 echo "Welcome to the Kafka SSL keystore and trusttore generator script."
-
+trust_store_path=$1
 trust_store_file=""
 trust_store_private_key_file=""
 
+if [ -z "$trust_store_path" ]; then
   if [ -e "$TRUSTSTORE_WORKING_DIRECTORY" ]; then
     file_exists_and_exit $TRUSTSTORE_WORKING_DIRECTORY
   fi
@@ -92,6 +94,27 @@ trust_store_private_key_file=""
 
   # don't need the cert because it's in the trust store.
   rm $TRUSTSTORE_WORKING_DIRECTORY/$CA_CERT_FILE
+else
+  # echo
+  # echo -n "Enter the path of the trust store file. "
+  # read -e trust_store_file
+  trust_store_file="$trust_store_path/$DEFAULT_TRUSTSTORE_FILENAME"
+
+  if ! [ -f $trust_store_file ]; then
+    echo "$trust_store_file isn't a file. Exiting."
+    exit 1
+  fi
+
+  # echo -n "Enter the path of the trust store's private key. "
+  # read -e trust_store_private_key_file
+
+  trust_store_private_key_file="$trust_store_path/$CA_KEY_FILE"
+  
+  if ! [ -f $trust_store_private_key_file ]; then
+    echo "$trust_store_private_key_file isn't a file. Exiting."
+    exit 1
+  fi
+fi
 
 echo
 echo "Continuing with:"
