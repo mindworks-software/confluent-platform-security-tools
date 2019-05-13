@@ -16,7 +16,7 @@ KEYSTORE_SIGNED_CERT="cert-signed"
 COUNTRY=$COUNTRY
 STATE=$STATE
 OU=$ORGANIZATION_UNIT
-CN=`hostname -f`
+CN=$HOST_NAME
 LOCATION=$CITY
 PASS=$PASSWORD
 
@@ -26,6 +26,9 @@ function file_exists_and_exit() {
   exit 1
 }
 
+if [ -z "$HOST_NAME"  ]; then
+  HOST_NAME=`hostname -f`
+fi
 if [ -e "$KEYSTORE_WORKING_DIRECTORY" ]; then
   file_exists_and_exit $KEYSTORE_WORKING_DIRECTORY
 fi
@@ -176,6 +179,25 @@ echo "Now the keystore's signed certificate will be imported back into the keyst
 echo
 keytool -keystore $KEYSTORE_WORKING_DIRECTORY/$KEYSTORE_FILENAME -alias localhost -import \
   -file $KEYSTORE_SIGNED_CERT -keypass $PASS -storepass $PASS
+
+
+PREFIXED_KEYSTORE_WORKING_DIRECTORY="${HOST_NAME}_${KEYSTORE_WORKING_DIRECTORY}"
+echo
+echo "Almost complete!"
+echo
+echo "Move generate keystore directory to its '$HOST_NAME' prefixed directory:"
+
+if [ -d $PREFIXED_KEYSTORE_WORKING_DIRECTORY ]; then
+  if [ -L "$LINK_OR_DIR" ]; then
+    # It is a symlink!
+    rm "$PREFIXED_KEYSTORE_WORKING_DIRECTORY"
+  else
+    # It's a directory!
+    rm -rf "$PREFIXED_KEYSTORE_WORKING_DIRECTORY"
+  fi
+fi
+
+mv $KEYSTORE_WORKING_DIRECTORY $PREFIXED_KEYSTORE_WORKING_DIRECTORY
 
 echo
 echo "All done!"
